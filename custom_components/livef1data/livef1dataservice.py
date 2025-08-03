@@ -21,12 +21,12 @@ class LiveF1DataService:
         }
         for i in range(driver_count):
             self.dataset[f"p{i+1}"] = {
-                "racing_number": None,
+                "RacingNumber": None,
                 "Tla": None,
                 "FirstName": None,
                 "LastName": None,
                 "TeamName": None,
-                "TeamColor": None,
+                "TeamColour": None,
                 "HeadshotUrl": None
             }
         self.ssl_context = ssl.create_default_context()
@@ -152,19 +152,19 @@ class LiveF1DataService:
                     pos = int(driver["Position"])
                     lastDriver = self.dataset[f"p{pos}"]
                     if driver.get("RacingNumber"):
-                        if lastDriver["racing_number"] != driver.get("RacingNumber"):
+                        if lastDriver["RacingNumber"] != driver.get("RacingNumber"):
                             driverStats = self.dataset["drivers"].get(driver.get("RacingNumber"), {})
                             color = driverStats.get("TeamColour", "FFFFFF")
                             r = int(color[0:2], 16)
                             g = int(color[2:4], 16)
                             b = int(color[4:6], 16)
                             self.dataset[f"p{pos}"] = {
-                                "racing_number": driver.get("RacingNumber"),
+                                "RacingNumber": driver.get("RacingNumber"),
                                 "Tla": driverStats.get("Tla", ""),
                                 "FirstName": driverStats.get("FirstName", ""),
                                 "LastName": driverStats.get("LastName", ""),
                                 "TeamName": driverStats.get("TeamName", ""),
-                                "TeamColor": f"[{r}, {g}, {b}]",
+                                "TeamColour": f"[{r}, {g}, {b}]",
                                 "HeadshotUrl": driverStats.get("HeadshotUrl", ""),
                             }
             if data.get("TrackStatus"):

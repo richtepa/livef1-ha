@@ -98,7 +98,7 @@ When the integration is connected and active, the switch will provide the follow
 
 * `p1` to `p20`: An object containing driver information sorted by race position. Each entry includes:
 
-  * `racing_number`: Driver’s racing number.
+  * `RacingNumber`: Driver’s racing number.
   * `Tla`: Timing screen abbreviation.
   * `FirstName`: Driver’s first name.
   * `LastName`: Driver’s last name.
