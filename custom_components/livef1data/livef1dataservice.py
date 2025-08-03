@@ -32,6 +32,7 @@ class LiveF1DataService:
         self.ssl_context = ssl.create_default_context()
     
     async def run_forever(self):
+        self._stop = False
         while not self._stop:
             try:
                 await self.connect()
@@ -41,6 +42,7 @@ class LiveF1DataService:
 
     async def connect(self):
         async with websockets.connect(self.url, ssl=self.ssl_context) as ws:
+            self.websocket = ws
             await self.send_initial_messages(ws)
             self.logger.info("WebSocket connected.")
             await self.handler(ws)
@@ -48,6 +50,9 @@ class LiveF1DataService:
     async def disconnect(self):
         self._stop = True
         self.logger.info("Disconnecting WebSocket.")
+        if self.websocket:
+            await self.websocket.close()
+            self.logger.info("WebSocket closed.")
 
     async def send_initial_messages(self, ws):
         await ws.send('{"protocol":"json","version":1}')

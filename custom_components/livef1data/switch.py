@@ -50,6 +50,6 @@ class LiveF1Switch(SwitchEntity):
     async def async_turn_off(self, **kwargs):
         if self._is_on:
             _LOGGER.info("Stopping LiveF1DataService...")
-            await self.hass.async_add_executor_job(self.service.disconnect)
+            await self.service.disconnect()
             self._is_on = False
             self.async_schedule_update_ha_state()
