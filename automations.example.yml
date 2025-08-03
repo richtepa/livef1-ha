@@ -1,0 +1,169 @@
+automation:
+  - alias: Routine - F1 Prepare Integration
+    description: "Session will begin soon, turn on switch and lights"
+    triggers:
+      - event: start
+        offset: "-0:10:0"
+        entity_id: calendar.f1 # https://files-f1.motorsportcalendars.com/de/f1-calendar_p1_p2_p3_qualifying_sprint_gp.ics
+        trigger: calendar
+    conditions: []
+    actions:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.live_f1_data
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 5
+          milliseconds: 0
+      - action: automation.trigger
+        metadata: {}
+        data:
+          skip_condition: true
+        target:
+          entity_id: automation.routine_f1_flag_integration
+      - action: automation.trigger
+        metadata: {}
+        data:
+          skip_condition: true
+        target:
+          entity_id: automation.routine_f1_leader_integration
+    mode: single
+
+  - alias: Routine - F1 Leader Integration
+    description: "Leader changed, change lights"
+    triggers:
+      - trigger: state
+        entity_id:
+          - switch.live_f1_data
+        attribute: p1
+    conditions: []
+    actions:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          rgb_color: |
+            {{ state_attr('switch.live_f1_data', 'p1').TeamColor }}
+        target:
+          device_id: 97a7742b83c470db8dffb513b83c8b53
+    mode: single
+
+  - alias: Routine - F1 Flag Integration
+    description: "Flag changed, change lights"
+    triggers:
+      - trigger: state
+        entity_id:
+          - switch.live_f1_data
+        attribute: track
+    conditions: []
+    actions:
+      - alias: Green
+        if:
+          - condition: state
+            entity_id: switch.live_f1_data
+            state: AllClear
+            attribute: track
+        then:
+          - action: light.turn_on
+            metadata: {}
+            data:
+              rgb_color:
+                - 32
+                - 182
+                - 35
+            target:
+              device_id: a30445092ed5612613abeb18fe6f91bd
+      - alias: Yellow
+        if:
+          - condition: state
+            entity_id: switch.live_f1_data
+            state: Yellow
+            attribute: track
+        then:
+          - action: light.turn_on
+            metadata: {}
+            data:
+              rgb_color:
+                - 182
+                - 177
+                - 32
+            target:
+              device_id: a30445092ed5612613abeb18fe6f91bd
+      - alias: Red
+        if:
+          - condition: state
+            entity_id: switch.live_f1_data
+            state: Red
+            attribute: track
+        then:
+          - action: light.turn_on
+            metadata: {}
+            data:
+              rgb_color:
+                - 182
+                - 42
+                - 32
+            target:
+              device_id: a30445092ed5612613abeb18fe6f91bd
+    mode: single
+
+  - alias: Routine - F1 Finished Integration
+    description: "Session finished, turn flag lights white"
+    triggers:
+      - trigger: state
+        entity_id:
+          - switch.live_f1_data
+        to: Finished
+        attribute: session
+    conditions: []
+    actions:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          rgb_color:
+            - 255
+            - 255
+            - 255
+        target:
+          device_id: a30445092ed5612613abeb18fe6f91bd
+    mode: single
+
+  - alias: Routine - F1 Finalised Integration
+    description: "End of F1 session, turn off switch and lights"
+    triggers:
+      - trigger: state
+        entity_id:
+          - switch.live_f1_data
+        to: Finalised
+        attribute: session
+    conditions: []
+    actions:
+      - action: switch.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.live_f1_data
+        enabled: true
+      - delay:
+          hours: 0
+          minutes: 10
+          seconds: 0
+          milliseconds: 0
+        enabled: true
+      - type: turn_off
+        device_id: a30445092ed5612613abeb18fe6f91bd
+        entity_id: 2b20eab3343ed69912e7f856d27b09a0
+        domain: light
+        enabled: true
+      - type: turn_off
+        device_id: 97a7742b83c470db8dffb513b83c8b53
+        entity_id: ca80a06fdc144d38b986bceeac194fe0
+        domain: light
+        enabled: true
+    mode: single
+
+
+
+

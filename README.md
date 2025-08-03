@@ -57,7 +57,7 @@ triggers:
   - trigger: state
     entity_id:
       - switch.live_f1_data
-    to: Finalized
+    to: Finalised
     attribute: session
 conditions: []
 actions:
