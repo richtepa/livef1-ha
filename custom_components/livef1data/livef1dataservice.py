@@ -98,7 +98,7 @@ class LiveF1DataService:
                 }
                 for driver in args[1].keys():
                     i = {
-                        "Position": int(args[1][driver]["Line"])+1,
+                        "Position": int(args[1][driver]["Line"]),
                         "RacingNumber": driver
                     }
                     item["DriverTracker"]["Lines"].append(i)
