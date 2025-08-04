@@ -19,7 +19,7 @@ def setup_platform(hass: HomeAssistant, config, add_entities, discovery_info=Non
         
 class LiveF1Switch(SwitchEntity):
     def __init__(self, hass):
-        self._attr_name = "Live F1 Data"
+        self._attr_name = "Live F1"
         self._is_on = False
         self._attr_extra_state_attributes = {}
         self.hass = hass

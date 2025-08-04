@@ -1,9 +1,9 @@
 {
-  "title": "Live F1 Data",
+  "title": "Live F1",
   "config": {
     "step": {
       "user": {
-        "title": "Live F1 Data Setup",
+        "title": "Live F1 Setup",
         "description": "No configuration is required for this integration. It will automatically connect to the Live F1 Data service."
       }
     }

@@ -1,6 +1,6 @@
 {
     "domain": "livef1",
-    "name": "Live F1 Data",
+    "name": "Live F1",
     "version": "1.0.0",
     "requirements": [
         "websockets>=12.0"

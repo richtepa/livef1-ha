@@ -1,8 +1,8 @@
-# Live F1 Data Home Assistant Integration
+# Live F1 Home Assistant Integration
 
 ## Overview
 
-The **Live F1 Data Integration** allows you to access real-time Formula 1 data directly within Home Assistant. By leveraging the official F1 websocket connection used on their website, this integration provides live session standings and driver information, including track status, session details, lap information, and more. This integration is designed to enhance your Home Assistant setup with live updates during F1 races.
+The **Live F1 Integration** allows you to access real-time Formula 1 data directly within Home Assistant. By leveraging the official F1 websocket connection used on their website, this integration provides live session standings and driver information, including track status, session details, lap information, and more. This integration is designed to enhance your Home Assistant setup with live updates during F1 races.
 
 ## Disclaimer / Support
 This is my first Home Assistant integration, and I’m excited to share it with the community! I welcome any feedback, bug reports, suggestions, or ideas for improvement. If you find any issues or have feature requests, feel free to open an issue. Additionally, pull requests for bug fixes, improvements, or enhancements are highly appreciated!
@@ -16,7 +16,7 @@ Follow these steps to install and configure the integration in your Home Assista
 
 1. **Download and Copy the Files**
 
-   * Copy the `custom_components/livef1data` folder from this repository into your Home Assistant `config/custom_components/` directory.
+   * Copy the `custom_components/livef1` folder from this repository into your Home Assistant `config/custom_components/` directory.
 
 2. **Add the Integration to Your Switches**
 
@@ -48,7 +48,7 @@ actions:
     metadata: {}
     data: {}
     target:
-      entity_id: switch.live_f1_data
+      entity_id: switch.live_f1
 ```
 
 * **After the Session**: Turn off the switch once the race has concluded to avoid excessive use of the websocket connection. Example:
@@ -56,7 +56,7 @@ actions:
 triggers:
   - trigger: state
     entity_id:
-      - switch.live_f1_data
+      - switch.live_f1
     to: Finalised
     attribute: session
 conditions: []
@@ -65,7 +65,7 @@ actions:
     metadata: {}
     data: {}
     target:
-      entity_id: switch.live_f1_data
+      entity_id: switch.live_f1
 ```
 
 ## Attributes
