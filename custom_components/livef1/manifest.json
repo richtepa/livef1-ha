@@ -1,17 +1,17 @@
 {
     "domain": "livef1",
     "name": "Live F1",
-    "version": "1.0.0",
-    "requirements": [
-        "websockets>=12.0"
-    ],
-    "iot_class": "cloud_push",
     "codeowners": [
         "@richtepa"
     ],
-    "documentation": "https://github.com/richtepa/livef1-ha",
-    "issue_tracker": "https://github.com/richtepa/livef1-ha/issues",
-    "integration_type": "sensor",
     "config_flow": true,
-    "single_config_entry": true
+    "documentation": "https://github.com/richtepa/livef1-ha",
+    "integration_type": "service",
+    "iot_class": "cloud_push",
+    "issue_tracker": "https://github.com/richtepa/livef1-ha/issues",
+    "requirements": [
+        "websockets>=12.0"
+    ],
+    "single_config_entry": true,
+    "version": "1.0.0"
 }
