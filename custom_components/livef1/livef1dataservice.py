@@ -3,7 +3,7 @@ import websockets
 import json
 import ssl
 
-LOGGING_ENABLED = True
+LOGGING_ENABLED = False
 
 class LiveF1DataService:
     def __init__(self, url, driver_count, callback, logger):
