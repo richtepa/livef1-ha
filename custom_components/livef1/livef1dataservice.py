@@ -183,7 +183,7 @@ class LiveF1DataService:
                 # ["TimingData",{"Lines":{"23":{"InPit":true,"Status":80,"NumberOfPitStops":3}}}
                 for key, value in data["TimingData"]["Lines"].items():
                     if "InPit" in value or "NumberOfPitStops" in value:
-                        i = self.find_driverIndex_by_number(self.dataset, key)
+                        i = self.find_driverPos_by_number(self.dataset, key)
                         if i is None:
                             continue
                         if "InPit" in value:
@@ -199,7 +199,7 @@ class LiveF1DataService:
         except Exception as e:
             self.logger.error(f"Error in LiveF1Data.updateData {e}", exc_info=True)
             
-    def find_driverIndex_by_number(self, dataset, number):
+    def find_driverPos_by_number(self, dataset, number):
         for i in range(1, self.driver_count + 1):
             driver = dataset.get(f"p{i}")
             if driver and str(driver.get("RacingNumber")) == str(number):
