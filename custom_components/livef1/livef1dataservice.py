@@ -57,8 +57,7 @@ class LiveF1DataService:
     async def send_initial_messages(self, ws):
         await ws.send('{"protocol":"json","version":1}')
         await ws.send('{"type":6}')
-        await ws.send('{"arguments":[["SessionInfo"]],"invocationId":"0","target":"subscribe","type":1}')
-        await ws.send('{"arguments":[["ExtrapolatedClock"]],"invocationId":"1","target":"subscribe","type":1}{"arguments":[["DriverList"]],"invocationId":"2","target":"subscribe","type":1}{"arguments":[["DriverTracker"]],"invocationId":"3","target":"subscribe","type":1}{"arguments":[["LapCount"]],"invocationId":"4","target":"subscribe","type":1}{"arguments":[["TrackStatus"]],"invocationId":"5","target":"subscribe","type":1}{"arguments":[["SessionStatus"]],"invocationId":"6","target":"subscribe","type":1}')
+        await ws.send('{"arguments":[["SessionInfo", "ExtrapolatedClock", "DriverList", "DriverTracker", "LapCount", "TrackStatus", "SessionStatus", "TimingData"]],"invocationId":"1","target":"subscribe","type":1}')
 
     async def handler(self, websocket):
         try:
@@ -171,18 +170,41 @@ class LiveF1DataService:
                                 "TeamName": driverStats.get("TeamName", ""),
                                 "TeamColour": f"[{r}, {g}, {b}]",
                                 "HeadshotUrl": driverStats.get("HeadshotUrl", ""),
+                                "InPit": driverStats.get("InPit", None),
+                                "NumberOfPitStops": driverStats.get("NumberOfPitStops", None)
                             }
             if data.get("TrackStatus"):
                 self.dataset["track"] = data["TrackStatus"]["Message"] # "AllClear" "Yellow" "VSCDeployed" "VSCEnding"
                 
             if data.get("SessionStatus"):
                 self.dataset["session"] = data["SessionStatus"]["Status"] # "Inactive" "Started" "Finished" "Finalised" "Ends"
+            
+            if data.get("TimingData"):
+                # ["TimingData",{"Lines":{"23":{"InPit":true,"Status":80,"NumberOfPitStops":3}}}
+                for key, value in data["TimingData"]["Lines"].items():
+                    if "InPit" in value or "NumberOfPitStops" in value:
+                        i = self.find_driverIndex_by_number(self.dataset, key)
+                        if i is None:
+                            continue
+                        if "InPit" in value:
+                            self.dataset["drivers"][key]["InPit"] = value["InPit"]
+                            self.dataset[f"p{i}"]["InPit"] = value["InPit"]
+                        if "NumberOfPitStops" in value:
+                            self.dataset["drivers"][key]["NumberOfPitStops"] = value["NumberOfPitStops"]
+                            self.dataset[f"p{i}"]["NumberOfPitStops"] = value["NumberOfPitStops"]
                 
             LOG(f"Updated dataset: {self.dataset}")
             await self.callback(self.dataset)
             
         except Exception as e:
             self.logger.error(f"Error in LiveF1Data.updateData {e}", exc_info=True)
+            
+    def find_driverIndex_by_number(self, dataset, number):
+        for i in range(1, self.driver_count + 1):
+            driver = dataset.get(f"p{i}")
+            if driver and str(driver.get("RacingNumber")) == str(number):
+                return i
+        return None
             
             
 def LOG(message):
