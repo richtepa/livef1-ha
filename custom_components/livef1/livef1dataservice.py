@@ -167,10 +167,13 @@ class LiveF1DataService:
                 #{'DriverTracker': {'Lines': [{'Position': 1, 'RacingNumber': '18', 'LapState': 97}, {'Position': 2, 'RacingNumber': '12', 'LapState': 609}, {'Position': 3, 'RacingNumber': '81'}, {'Position': 4, 'RacingNumber': '14'}, {'Position': 5, 'RacingNumber': '6'}, {'Position': 6, 'RacingNumber': '4'}, {'Position': 7, 'RacingNumber': '16'}, {'Position': 8, 'RacingNumber': '5'}, {'Position': 9, 'RacingNumber': '55'}]}}
                 for driver in data["DriverTracker"]["Lines"]:
                     pos = int(driver["Position"])
-                    lastPos = self.dataset["drivers"][driver["RacingNumber"]]["Position"]
+                    num = driver.get("RacingNumber")
+                    if not num in self.dataset["drivers"]:
+                        continue
+                    lastPos = self.dataset["drivers"][num]["Position"]
                     if lastPos == pos:
                         continue
-                    self.dataset["drivers"][driver["RacingNumber"]]["Position"] = pos
+                    self.dataset["drivers"][num]["Position"] = pos
                     changed = True
             
             if data.get("TrackStatus"):
@@ -186,7 +189,9 @@ class LiveF1DataService:
             if data.get("TimingData"):
                 # ["TimingData",{"Lines":{"23":{"InPit":true,"Status":80,"NumberOfPitStops":3}}}
                 for key, value in data["TimingData"]["Lines"].items():
-                    if "InPit" in value and value["InPit"] != self.dataset["drivers"][key].get("InPit"):
+                    if not key in self.dataset["drivers"]:
+                        continue
+                    if "InPit" in value and value["InPit"] != self.dataset["drivers"][key]["InPit"]:
                         self.dataset["drivers"][key]["InPit"] = value["InPit"]
                         changed = True
                     if "NumberOfPitStops" in value and value["NumberOfPitStops"] != self.dataset["drivers"][key]["PitStops"]:
@@ -207,8 +212,9 @@ class LiveF1DataService:
         data = {}
         data.update(self.dataset)
         for key, value in data["drivers"].items():
-            data[f"p{value['Position']}"] = value
             data[f"d{key}"] = value
+            if value.get("Position"):
+                data[f"p{value['Position']}"] = value
         return data
 
 
