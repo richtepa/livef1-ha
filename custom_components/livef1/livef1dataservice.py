@@ -182,14 +182,16 @@ class LiveF1DataService:
             if data.get("TimingData"):
                 # ["TimingData",{"Lines":{"23":{"InPit":true,"Status":80,"NumberOfPitStops":3}}}
                 for key, value in data["TimingData"]["Lines"].items():
-                    if "InPit" in value:
-                        self.dataset["drivers"][key]["InPit"] = value["InPit"]
-                        i = find_driverIndex_by_number(self.dataset, key)
-                        self.dataset[f"p{i}"]["InPit"] = value["InPit"]
-                    if "NumberOfPitStops" in value:
-                        self.dataset["drivers"][key]["NumberOfPitStops"] = value["NumberOfPitStops"]
-                        i = find_driverIndex_by_number(self.dataset, key)
-                        self.dataset[f"p{i}"]["NumberOfPitStops"] = value["NumberOfPitStops"]
+                    if "InPit" in value or "NumberOfPitStops" in value:
+                        i = self.find_driverIndex_by_number(self.dataset, key)
+                        if i is None:
+                            continue
+                        if "InPit" in value:
+                            self.dataset["drivers"][key]["InPit"] = value["InPit"]
+                            self.dataset[f"p{i}"]["InPit"] = value["InPit"]
+                        if "NumberOfPitStops" in value:
+                            self.dataset["drivers"][key]["NumberOfPitStops"] = value["NumberOfPitStops"]
+                            self.dataset[f"p{i}"]["NumberOfPitStops"] = value["NumberOfPitStops"]
                 
             LOG(f"Updated dataset: {self.dataset}")
             await self.callback(self.dataset)
@@ -197,12 +199,12 @@ class LiveF1DataService:
         except Exception as e:
             self.logger.error(f"Error in LiveF1Data.updateData {e}", exc_info=True)
             
-def find_driverIndex_by_number(dataset, number):
-    for i in range(1, len(dataset)):
-        driver = dataset.get(f"p{i}")
-        if driver and driver.get("RacingNumber") == number:
-            return i
-    return None
+    def find_driverIndex_by_number(self, dataset, number):
+        for i in range(1, self.driver_count + 1):
+            driver = dataset.get(f"p{i}")
+            if driver and str(driver.get("RacingNumber")) == str(number):
+                return i
+        return None
             
             
 def LOG(message):
