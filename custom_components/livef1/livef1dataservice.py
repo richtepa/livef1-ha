@@ -19,16 +19,6 @@ class LiveF1DataService:
             "total_laps": None,
             "drivers": {}
         }
-        for i in range(driver_count):
-            self.dataset[f"p{i+1}"] = {
-                "RacingNumber": None,
-                "Tla": None,
-                "FirstName": None,
-                "LastName": None,
-                "TeamName": None,
-                "TeamColour": None,
-                "HeadshotUrl": None
-            }
         self.ssl_context = ssl.create_default_context()
     
     async def run_forever(self):
@@ -57,8 +47,7 @@ class LiveF1DataService:
     async def send_initial_messages(self, ws):
         await ws.send('{"protocol":"json","version":1}')
         await ws.send('{"type":6}')
-        await ws.send('{"arguments":[["SessionInfo"]],"invocationId":"0","target":"subscribe","type":1}')
-        await ws.send('{"arguments":[["ExtrapolatedClock"]],"invocationId":"1","target":"subscribe","type":1}{"arguments":[["DriverList"]],"invocationId":"2","target":"subscribe","type":1}{"arguments":[["DriverTracker"]],"invocationId":"3","target":"subscribe","type":1}{"arguments":[["LapCount"]],"invocationId":"4","target":"subscribe","type":1}{"arguments":[["TrackStatus"]],"invocationId":"5","target":"subscribe","type":1}{"arguments":[["SessionStatus"]],"invocationId":"6","target":"subscribe","type":1}')
+        await ws.send('{"arguments":[["SessionInfo", "ExtrapolatedClock", "DriverList", "DriverTracker", "LapCount", "TrackStatus", "SessionStatus", "TimingData"]],"invocationId":"1","target":"subscribe","type":1}')
 
     async def handler(self, websocket):
         try:
@@ -139,52 +128,96 @@ class LiveF1DataService:
 
     async def updateData(self, data):
         LOG(f"updateData: {data}")
+        changed = False
         
         try:
             if data.get("LapCount"):
-                self.dataset["lap"] = data["LapCount"]["CurrentLap"]
-                self.dataset["total_laps"] = data["LapCount"]["TotalLaps"]
+                if "CurrentLap" in data["LapCount"] and data["LapCount"]["CurrentLap"] != self.dataset["lap"]:
+                    self.dataset["lap"] = data["LapCount"]["CurrentLap"]
+                    changed = True
+                if "TotalLaps" in data["LapCount"] and data["LapCount"]["TotalLaps"] != self.dataset["total_laps"]:
+                    self.dataset["total_laps"] = data["LapCount"]["TotalLaps"]
+                    changed = True
                 
             if data.get("ExtrapolatedClock"):
                 pass
             
             if data.get("DriverList"):
-                self.dataset["drivers"] = data["DriverList"]
+                for key, value in data["DriverList"].items():
+                    if not key.isdigit():
+                        continue
+                    
+                    self.dataset["drivers"][key] = value
+                    color = self.dataset["drivers"][key].get("TeamColour", "FFFFFF")
+                    r = int(color[0:2], 16)
+                    g = int(color[2:4], 16)
+                    b = int(color[4:6], 16)
+                    self.dataset["drivers"][key]["TeamColour"] = f"[{r}, {g}, {b}]"
+                            
+                    if not self.dataset["drivers"][key].get("Position"):
+                        self.dataset["drivers"][key]["Position"] = None
+                    if not self.dataset["drivers"][key].get("InPit"):
+                        self.dataset["drivers"][key]["InPit"] = None
+                    if not self.dataset["drivers"][key].get("PitStops"):
+                        self.dataset["drivers"][key]["PitStops"] = None
+                changed = True
+                    
                 
             if data.get("DriverTracker"):
                 #{'DriverTracker': {'Lines': [{'Position': 1, 'RacingNumber': '18', 'LapState': 97}, {'Position': 2, 'RacingNumber': '12', 'LapState': 609}, {'Position': 3, 'RacingNumber': '81'}, {'Position': 4, 'RacingNumber': '14'}, {'Position': 5, 'RacingNumber': '6'}, {'Position': 6, 'RacingNumber': '4'}, {'Position': 7, 'RacingNumber': '16'}, {'Position': 8, 'RacingNumber': '5'}, {'Position': 9, 'RacingNumber': '55'}]}}
                 for driver in data["DriverTracker"]["Lines"]:
                     pos = int(driver["Position"])
-                    lastDriver = self.dataset[f"p{pos}"]
-                    if driver.get("RacingNumber"):
-                        if lastDriver["RacingNumber"] != driver.get("RacingNumber"):
-                            driverStats = self.dataset["drivers"].get(driver.get("RacingNumber"), {})
-                            color = driverStats.get("TeamColour", "FFFFFF")
-                            r = int(color[0:2], 16)
-                            g = int(color[2:4], 16)
-                            b = int(color[4:6], 16)
-                            self.dataset[f"p{pos}"] = {
-                                "RacingNumber": driver.get("RacingNumber"),
-                                "Tla": driverStats.get("Tla", ""),
-                                "FirstName": driverStats.get("FirstName", ""),
-                                "LastName": driverStats.get("LastName", ""),
-                                "TeamName": driverStats.get("TeamName", ""),
-                                "TeamColour": f"[{r}, {g}, {b}]",
-                                "HeadshotUrl": driverStats.get("HeadshotUrl", ""),
-                            }
+                    num = driver.get("RacingNumber")
+                    if not num in self.dataset["drivers"]:
+                        continue
+                    lastPos = self.dataset["drivers"][num]["Position"]
+                    if lastPos == pos:
+                        continue
+                    self.dataset["drivers"][num]["Position"] = pos
+                    changed = True
+            
             if data.get("TrackStatus"):
-                self.dataset["track"] = data["TrackStatus"]["Message"] # "AllClear" "Yellow" "VSCDeployed" "VSCEnding"
+                if "Message" in data["TrackStatus"] and data["TrackStatus"]["Message"] != self.dataset["track"]:
+                    self.dataset["track"] = data["TrackStatus"]["Message"] # "AllClear" "Yellow" "VSCDeployed" "VSCEnding"
+                    changed = True
                 
             if data.get("SessionStatus"):
-                self.dataset["session"] = data["SessionStatus"]["Status"] # "Inactive" "Started" "Finished" "Finalised" "Ends"
-                
+                if "Status" in data["SessionStatus"] and data["SessionStatus"]["Status"] != self.dataset["session"]:
+                    self.dataset["session"] = data["SessionStatus"]["Status"] # "Inactive" "Started" "Finished" "Finalised" "Ends"
+                    changed = True
+
+            if data.get("TimingData"):
+                # ["TimingData",{"Lines":{"23":{"InPit":true,"Status":80,"NumberOfPitStops":3}}}
+                for key, value in data["TimingData"]["Lines"].items():
+                    if not key in self.dataset["drivers"]:
+                        continue
+                    if "InPit" in value and value["InPit"] != self.dataset["drivers"][key]["InPit"]:
+                        self.dataset["drivers"][key]["InPit"] = value["InPit"]
+                        changed = True
+                    if "NumberOfPitStops" in value and value["NumberOfPitStops"] != self.dataset["drivers"][key]["PitStops"]:
+                        self.dataset["drivers"][key]["PitStops"] = value["NumberOfPitStops"]
+                        changed = True
+            
+            if not changed:
+                return    
             LOG(f"Updated dataset: {self.dataset}")
-            await self.callback(self.dataset)
+            await self.callback(self.data)
             
         except Exception as e:
+            LOG(f"Error in LiveF1Data.updateData {e}")
             self.logger.error(f"Error in LiveF1Data.updateData {e}", exc_info=True)
-            
-            
+    
+    @property
+    def data(self):
+        data = {}
+        data.update(self.dataset)
+        for key, value in data["drivers"].items():
+            data[f"d{key}"] = value
+            if value.get("Position"):
+                data[f"p{value['Position']}"] = value
+        return data
+
+
 def LOG(message):
     if not LOGGING_ENABLED:
         return
