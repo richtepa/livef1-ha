@@ -84,27 +84,26 @@ When the integration is connected and active, the switch will provide the follow
 
 * `total_laps`: The total number of laps in the current session.
 
-* `drivers`: An object containing information for all drivers in the session. Each driver entry includes:
+* `drivers`: An object containing the information of all drivers. Each driver entry (key = RacingNumber) is a `DRIVEROBJECT`. :warning: DEPRECATED, use `d<RacingNumber>`!
 
-  * `RacingNumber`: Driver's racing number.
-  * `FirstName`: Driver's first name.
-  * `LastName`: Driver's last name.
-  * `FullName`: Driver's full name.
-  * `BroadcastName`: Driver's broadcast name (used during the race).
-  * `Tla`: Timing screen abbreviation (e.g., `VER` for Max Verstappen).
-  * `TeamName`: The team the driver is racing for.
-  * `TeamColour`: The team’s color (used for identification).
-  * `HeadshotUrl`: URL to the driver's headshot image.
+* `p1` to `p20`: For each position there is a `DRIVEROBJECT` with the information of the driver in this position.
 
-* `p1` to `p20`: An object containing driver information sorted by race position. Each entry includes:
+* `d<RacingNumber>` (e.g. `d1` for Max Verstappen): For each driver there is a `DRIVEROBJECT` with the information of the driver with racing number `<RacingNumber>`
 
-  * `RacingNumber`: Driver’s racing number.
-  * `Tla`: Timing screen abbreviation.
-  * `FirstName`: Driver’s first name.
-  * `LastName`: Driver’s last name.
-  * `TeamName`: The driver’s team.
-  * `TeamColour`: The team’s color.
-  * `HeadshotUrl`: URL to the driver’s headshot image.
+
+> * The `DRIVEROBJECT` consists of the follwing information:
+>   * `RacingNumber`: String - Driver's racing number.
+>   * `FirstName`: String - Driver's first name.
+>   * `LastName`: String - Driver's last name.
+>   * `FullName`: String - Driver's full name.
+>   * `BroadcastName`: String - Driver's broadcast name (used during the race).
+>   * `Tla`: String - Timing screen abbreviation (e.g., `VER` for Max Verstappen).
+>   * `TeamName`: String - The team the driver is racing for.
+>   * `TeamColour`: String - The team’s color (RGB Array; `'[71, 129, 215]'` for RedBull).
+>   * `HeadshotUrl`: String - URL to the driver's headshot image.
+>   * `Position`: Integer - Position in Session
+>   * `InPit`: Boolean - Is in Pit
+>   * `PitStops`: Integer - Number of Pit Stops
 
 
 ## Notes
