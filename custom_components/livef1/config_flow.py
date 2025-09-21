@@ -1,6 +1,6 @@
 from homeassistant import config_entries
 
-DOMAIN = "livef1"
+from .const import DOMAIN
 
 class LiveF1DataConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
