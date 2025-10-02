@@ -5,6 +5,8 @@ import asyncio
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import STATE_OFF, STATE_ON
 from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN, SWITCH_NAME
 
@@ -13,8 +15,13 @@ _LOGGER = logging.getLogger(__name__)
 WEBSOCKET_URL = "wss://livetiming.formula1.com/signalrcore"
 
 
-def setup_platform(hass: HomeAssistant, config, add_entities, discovery_info=None):
-    add_entities([LiveF1Switch(hass)], True)
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up Live F1 switch from a config entry."""
+    async_add_entities([LiveF1Switch(hass)], True)
 
         
 class LiveF1Switch(SwitchEntity):
