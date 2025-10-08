@@ -1,2 +1,3 @@
 DOMAIN = "livef1"
-SWITCH_NAME = "Live F1"
+CONF_UPDATE_DELAY = "update_delay"
+DEFAULT_UPDATE_DELAY = 0
