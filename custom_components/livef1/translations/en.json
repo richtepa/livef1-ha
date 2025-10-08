@@ -4,7 +4,42 @@
     "step": {
       "user": {
         "title": "Live F1 Setup",
-        "description": "No configuration is required for this integration. It will automatically connect to the Live F1 Data service."
+        "description": "Configure your Live F1 integration settings.",
+        "data": {
+          "update_delay": "Update delay (seconds)"
+        },
+        "data_description": {
+          "update_delay": "Delay in seconds before applying property changes. Set to 0 for immediate updates. Range: 0-600 seconds."
+        }
+      }
+    },
+    "error": {
+      "value_out_of_range": "Value must be between 0 and 600 seconds",
+      "invalid_number": "Please enter a valid number"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Live F1 Options",
+        "description": "Configure Live F1 integration options.",
+        "data": {
+          "update_delay": "Update delay (seconds)"
+        },
+        "data_description": {
+          "update_delay": "Delay in seconds before applying property changes. Set to 0 for immediate updates. Range: 0-600 seconds."
+        }
+      }
+    },
+    "error": {
+      "value_out_of_range": "Value must be between 0 and 600 seconds",
+      "invalid_number": "Please enter a valid number"
+    }
+  },
+  "entity": {
+    "number": {
+      "update_delay": {
+        "name": "Update delay"
       }
     }
   }
