@@ -6,12 +6,14 @@ import ssl
 LOGGING_ENABLED = False
 
 class LiveF1DataService:
-    def __init__(self, url, driver_count, callback, logger):
+    def __init__(self, url, driver_count, callback, logger, update_delay=0):
         self.url = url
         self.driver_count = driver_count
         self.callback = callback
         self.logger = logger
         self._stop = False
+        self.update_delay = update_delay
+        self._pending_tasks = []  # List to store individual delay tasks
         self.dataset = {
             "track": None,
             "session": None,
@@ -39,10 +41,20 @@ class LiveF1DataService:
             
     async def disconnect(self):
         self._stop = True
+        # Cancel all pending update tasks
+        for task in self._pending_tasks:
+            if not task.done():
+                task.cancel()
+        self._pending_tasks.clear()
         self.logger.info("Disconnecting WebSocket.")
         if self.websocket:
             await self.websocket.close()
             self.logger.info("WebSocket closed.")
+
+    def set_update_delay(self, delay):
+        """Update the delay for property changes."""
+        self.update_delay = delay
+        self.logger.info(f"Update delay set to {delay} seconds")
 
     async def send_initial_messages(self, ws):
         await ws.send('{"protocol":"json","version":1}')
@@ -77,7 +89,7 @@ class LiveF1DataService:
             await websocket.send('{"type":6}')
             
         elif j.get("type") == 3: # new data
-            await self.updateData(j.get("result"))
+            await self.updateData(j.get("result"), is_initial=True)
             
         elif j.get("type") == 1:
             args = j.get("arguments", [])
@@ -126,7 +138,7 @@ class LiveF1DataService:
             self.logger.warn(f"Received unknown message: {j}")
                 
 
-    async def updateData(self, data):
+    async def updateData(self, data, is_initial=False):
         LOG(f"updateData: {data}")
         changed = False
         
@@ -201,11 +213,39 @@ class LiveF1DataService:
             if not changed:
                 return    
             LOG(f"Updated dataset: {self.dataset}")
-            await self.callback(self.data)
+            
+            # For initial messages (type 3), process immediately without delay
+            if is_initial:
+                await self.callback(self.data)
+                return
+            
+            # For regular updates, use delay scheduling if configured
+            if self.update_delay > 0:
+                # Create individual delay task for this specific change
+                data_snapshot = self.data.copy()
+                task = asyncio.create_task(self._delayed_update_individual(data_snapshot))
+                self._pending_tasks.append(task)
+                
+                # Clean up completed tasks
+                self._pending_tasks = [t for t in self._pending_tasks if not t.done()]
+            else:
+                await self.callback(self.data)
             
         except Exception as e:
             LOG(f"Error in LiveF1Data.updateData {e}")
             self.logger.error(f"Error in LiveF1Data.updateData {e}", exc_info=True)
+    
+    async def _delayed_update_individual(self, data_snapshot):
+        """Execute a single delayed callback update for a specific data snapshot."""
+        try:
+            await asyncio.sleep(self.update_delay)
+            await self.callback(data_snapshot)
+            LOG(f"Processed individual delayed change: {data_snapshot}")
+        except asyncio.CancelledError:
+            # Task was cancelled, this is expected when disconnecting
+            pass
+        except Exception as e:
+            self.logger.error(f"Error in individual delayed update: {e}", exc_info=True)
     
     @property
     def data(self):
