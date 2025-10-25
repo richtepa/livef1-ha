@@ -255,6 +255,7 @@ class LiveF1DataService:
             data[f"d{key}"] = value
             if value.get("Position"):
                 data[f"p{value['Position']}"] = value
+        del data["drivers"] # remove drivers
         return data
 
 
