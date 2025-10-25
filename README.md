@@ -84,8 +84,6 @@ When the integration is connected and active, the switch will provide the follow
 
 * `total_laps`: The total number of laps in the current session.
 
-* `drivers`: An object containing the information of all drivers. Each driver entry (key = RacingNumber) is a `DRIVEROBJECT`. :warning: DEPRECATED, use `d<RacingNumber>`!
-
 * `p1` to `p20`: For each position there is a `DRIVEROBJECT` with the information of the driver in this position.
 
 * `d<RacingNumber>` (e.g. `d1` for Max Verstappen): For each driver there is a `DRIVEROBJECT` with the information of the driver with racing number `<RacingNumber>`
