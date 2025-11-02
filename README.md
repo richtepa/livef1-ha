@@ -15,21 +15,28 @@ Thank you for your support and contributions!
 Follow these steps to install and configure the integration in your Home Assistant setup:
 
 1. **Download and Copy the Files**
+   * Copy the `custom_components/livef1` folder from this repository into your Home Assistant `config/custom_components/` directory
 
-   * Copy the `custom_components/livef1` folder from this repository into your Home Assistant `config/custom_components/` directory.
+2. **Restart Home Assistant**
+   * Restart Home Assistant to load the integration
 
-2. **Add the Integration to Your Switches**
+### Configuration
 
-   * Add the following configuration to your `configuration.yaml` file to include the Live F1 switch:
+After installation, configure the integration through the Home Assistant UI:
 
-   ```yaml
-   switch:
-     - platform: livef1
-   ```
+1. **Add Integration**
+   * Go to **Settings** > **Devices & Services**
+   * Click **"+ ADD INTEGRATION"**
+   * Search for **"Live F1"** and select it
 
-3. **Restart Home Assistant**
+2. **Configure Settings**
+   * **Update Delay**: Set the delay of data updates to match your broadcast delay (default: 0 seconds)
+   * Click **"Submit"** to complete the setup
 
-   * Restart Home Assistant to apply the changes.
+3. **Integration Ready**
+   * The integration will create two entities:
+     - **Live F1 Switch**: Turn the data service on/off
+     - **Live F1 Update Delay**: Control the update frequency
 
 
 ## Usage
