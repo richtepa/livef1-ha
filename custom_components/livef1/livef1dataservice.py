@@ -6,7 +6,8 @@ import ssl
 LOGGING_ENABLED = False
 
 class LiveF1DataService:
-    def __init__(self, url, driver_count, callback, logger, update_delay=0):
+    def __init__(self, loop, url, driver_count, callback, logger, update_delay=0):
+        self.loop = loop
         self.url = url
         self.driver_count = driver_count
         self.callback = callback
@@ -21,7 +22,6 @@ class LiveF1DataService:
             "total_laps": None,
             "drivers": {}
         }
-        self.ssl_context = ssl.create_default_context()
     
     async def run_forever(self):
         self._stop = False
@@ -33,11 +33,16 @@ class LiveF1DataService:
                 await asyncio.sleep(10)
 
     async def connect(self):
-        async with websockets.connect(self.url, ssl=self.ssl_context) as ws:
+        ssl_context = await self.loop.run_in_executor(None, self._create_ssl_context)
+        async with websockets.connect(self.url, ssl=ssl_context) as ws:
             self.websocket = ws
             await self.send_initial_messages(ws)
             self.logger.info("WebSocket connected.")
             await self.handler(ws)
+            
+    def _create_ssl_context(self):
+        # Synchronous blocking operation moved to this function
+        return ssl.create_default_context()
             
     async def disconnect(self):
         self._stop = True

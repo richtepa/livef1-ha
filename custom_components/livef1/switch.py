@@ -45,6 +45,7 @@ class LiveF1Switch(SwitchEntity):
 
         from .livef1dataservice import LiveF1DataService
         self.service = LiveF1DataService(
+            loop = hass.loop,
             url=WEBSOCKET_URL,
             driver_count=20,
             callback=self._on_data,
